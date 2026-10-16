@@ -1,0 +1,8 @@
+bin/
+obj/
+.vs/
+.vscode/
+*.user
+
+# Contiene datos sensibles (contraseña local de PostgreSQL) - nunca se sube
+DashboardJym/appsettings.Development.json
