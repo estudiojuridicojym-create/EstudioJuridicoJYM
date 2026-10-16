@@ -1,0 +1,26 @@
+@model List<DashboardJym.Models.Notificacion>
+@{
+    ViewData["Title"] = "Notificaciones";
+}
+
+<h1>Notificaciones</h1>
+
+<div>
+    @foreach (var n in Model)
+    {
+        <div class="item-notif @(n.Leida ? "" : "no-leida")">
+            <div>
+                <div class="titulo-notif">@n.Titulo</div>
+                <div class="mensaje-notif">@n.Mensaje</div>
+                <div class="hora">@n.FechaCreacion.ToString("dd/MM/yyyy HH:mm")</div>
+            </div>
+            @if (!n.Leida)
+            {
+                <form method="post" asp-action="MarcarLeida" asp-route-id="@n.Id">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-primario" style="padding:4px 10px; font-size:12px;">Marcar leída</button>
+                </form>
+            }
+        </div>
+    }
+</div>

@@ -1,0 +1,47 @@
+@{
+    ViewData["Title"] = "Calendario";
+    var semanas = (List<List<DateTime>>)ViewBag.Semanas;
+    var porDia = (Dictionary<DateTime, List<DashboardJym.Models.ActividadAgenda>>)ViewBag.PorDia;
+    DateTime mesActual = ViewBag.MesActual;
+    string nombreMes = ViewBag.NombreMes;
+    DateTime mesAnterior = ViewBag.MesAnterior;
+    DateTime mesSiguiente = ViewBag.MesSiguiente;
+}
+
+<h1 style="text-transform:capitalize;">@nombreMes @mesActual.Year</h1>
+
+<div class="barra">
+    <a class="btn btn-primario" asp-action="Listar"><i class="bi bi-list-ul"></i> Ver lista</a>
+    <a class="btn btn-primario" asp-action="Calendario" asp-route-anio="@mesAnterior.Year" asp-route-mes="@mesAnterior.Month">&laquo; Mes anterior</a>
+    <a class="btn btn-primario" asp-action="Calendario" asp-route-anio="@mesSiguiente.Year" asp-route-mes="@mesSiguiente.Month">Mes siguiente &raquo;</a>
+    <a class="btn btn-primario" asp-action="FormularioNuevo"><i class="bi bi-plus-lg"></i> Nueva actividad</a>
+</div>
+
+<div class="tabla-wrap">
+<table class="calendario">
+    <thead>
+        <tr><th>Lun</th><th>Mar</th><th>Mié</th><th>Jue</th><th>Vie</th><th>Sáb</th><th>Dom</th></tr>
+    </thead>
+    <tbody>
+        @foreach (var semana in semanas)
+        {
+            <tr>
+                @foreach (var dia in semana)
+                {
+                    var fueraDeMes = dia.Month != mesActual.Month;
+                    <td class="@(fueraDeMes ? "fuera-mes" : "")">
+                        <div class="num-dia">@dia.Day</div>
+                        @if (porDia.TryGetValue(dia.Date, out var actividadesDelDia))
+                        {
+                            foreach (var a in actividadesDelDia)
+                            {
+                                <a class="evento" asp-action="FormularioEditar" asp-route-id="@a.Id">@a.Hora.ToString(@"hh\:mm") @a.Titulo</a>
+                            }
+                        }
+                    </td>
+                }
+            </tr>
+        }
+    </tbody>
+</table>
+</div>

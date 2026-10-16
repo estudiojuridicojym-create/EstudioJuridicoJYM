@@ -1,0 +1,50 @@
+@model List<DashboardJym.Models.Proceso>
+@{
+    ViewData["Title"] = "Procesos";
+    var q = ViewData["Q"] as string;
+}
+
+<h1>Procesos</h1>
+
+@if (TempData["Mensaje"] != null)
+{
+    <p class="mensaje">@TempData["Mensaje"]</p>
+}
+
+<div class="barra">
+    <form method="get" asp-action="Listar" style="display:flex; gap:8px;">
+        <input type="text" name="q" value="@q" placeholder="Buscar por materia, cliente, N° expediente o N° carpeta">
+        <button class="btn btn-primario" type="submit"><i class="bi bi-search"></i> Buscar</button>
+    </form>
+    <a class="btn btn-primario" asp-action="FormularioNuevo"><i class="bi bi-plus-lg"></i> Nuevo proceso</a>
+</div>
+
+<div class="tabla-wrap">
+<table>
+    <thead>
+        <tr><th>Cliente</th><th>Materia</th><th>N° Expediente</th><th>N° Carpeta</th><th>Estado</th><th>Prioridad</th><th>Abogado</th><th>Asesor</th><th>Fecha de inicio</th><th></th></tr>
+    </thead>
+    <tbody>
+        @foreach (var p in Model)
+        {
+            <tr>
+                <td>@p.Cliente?.Nombres @p.Cliente?.Apellidos</td>
+                <td>@p.Materia</td>
+                <td>@(string.IsNullOrWhiteSpace(p.NumeroExpediente) ? "-" : p.NumeroExpediente)</td>
+                <td>@(string.IsNullOrWhiteSpace(p.NumeroCarpeta) ? "-" : p.NumeroCarpeta)</td>
+                <td><span class="badge @p.Estado">@p.Estado</span></td>
+                <td><span class="badge prio-@p.Prioridad">@p.Prioridad</span></td>
+                <td>@(p.AbogadoResponsable != null ? p.AbogadoResponsable.Nombres : "Sin derivar")</td>
+                <td>@(p.AsesorResponsable != null ? p.AsesorResponsable.Nombres : "-")</td>
+                <td>@(p.FechaInicio?.ToString("dd/MM/yyyy") ?? "-")</td>
+                <td>
+                    <a asp-action="VerDetalle" asp-route-id="@p.Id">Ver</a>
+                    &nbsp;|&nbsp;
+                    <a asp-action="FormularioEditar" asp-route-id="@p.Id">@(User.IsInRole("ABOGADO") ? "Editar" : "Solicitar edición")</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+</div>
+<partial name="_Paginador" />

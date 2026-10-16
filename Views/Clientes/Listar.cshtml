@@ -1,0 +1,57 @@
+@model List<DashboardJym.Models.Cliente>
+@{
+    ViewData["Title"] = "Clientes";
+    var q = ViewData["Q"] as string;
+    var esAbogado = User.IsInRole("ABOGADO");
+    var avisoBaja = esAbogado
+        ? "¿Desactivar a este cliente?"
+        : "Se enviará una solicitud de desactivación para que un abogado la apruebe. ¿Continuar?";
+}
+
+<h1>Clientes</h1>
+
+@if (TempData["Mensaje"] != null)
+{
+    <p class="mensaje">@TempData["Mensaje"]</p>
+}
+
+<div class="barra">
+    <form method="get" asp-action="Listar" style="display:flex; gap:8px;">
+        <input type="text" name="q" value="@q" placeholder="Buscar por nombre, apellido o DNI">
+        <button class="btn btn-primario" type="submit"><i class="bi bi-search"></i> Buscar</button>
+    </form>
+    <a class="btn btn-primario" asp-action="FormularioNuevo"><i class="bi bi-plus-lg"></i> Nuevo cliente</a>
+</div>
+
+<div class="tabla-wrap">
+<table>
+    <thead>
+        <tr><th>Nombres</th><th>Apellidos</th><th>DNI</th><th>WhatsApp</th><th>Correo</th><th>Acciones</th></tr>
+    </thead>
+    <tbody>
+        @foreach (var c in Model)
+        {
+            <tr>
+                <td>@c.Nombres</td>
+                <td>@c.Apellidos</td>
+                <td>@c.Dni</td>
+                <td>@c.Whatsapp</td>
+                <td>@c.Correo</td>
+                <td>
+                    <a asp-action="VerDetalle" asp-route-id="@c.Id">Ver</a>
+                    &nbsp;|&nbsp;
+                    <a asp-action="FormularioEditar" asp-route-id="@c.Id">@(esAbogado ? "Editar" : "Solicitar edición")</a>
+                    &nbsp;|&nbsp;
+                    <form method="post" asp-action="Desactivar" asp-route-id="@c.Id" style="display:inline"
+                          onsubmit="return confirm(this.dataset.aviso);"
+                          data-aviso="@avisoBaja">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-peligro" style="padding:2px 8px;">@(esAbogado ? "Desactivar" : "Solicitar baja")</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+</div>
+<partial name="_Paginador" />

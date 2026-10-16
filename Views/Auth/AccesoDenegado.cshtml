@@ -1,0 +1,38 @@
+@{
+    Layout = null;
+    ViewData["Title"] = "Acceso denegado";
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acceso denegado - Estudio Jurídico JYM</title>
+    <link rel="icon" type="image/webp" href="~/img/logo.webp">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Raleway:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/app.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</head>
+<body>
+    <div class="login-wrap">
+        <div class="login-panel-brand">
+            <h2>Estudio <span class="accent">JYM</span></h2>
+            <p>Cada sección se protege según el rol de cada cuenta.</p>
+        </div>
+        <div class="login-panel-form">
+            <div class="login-caja" style="max-width:460px; text-align:center;">
+                <i class="bi bi-shield-lock" style="font-size:42px; color:var(--dorado, #b8933a);"></i>
+                <h1 style="margin-top:14px;">No tienes acceso a esta sección</h1>
+                <p class="sub">
+                    Tu cuenta está activa, pero tu rol actual no incluye esta parte del sistema.
+                    Si crees que deberías tener acceso, pídeselo a un abogado del estudio.
+                </p>
+                <a class="btn btn-primario" href="/" style="margin-top:10px; display:inline-flex;">
+                    <i class="bi bi-house-door"></i> Volver al inicio
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

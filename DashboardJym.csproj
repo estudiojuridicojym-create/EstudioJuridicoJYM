@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>DashboardJym</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- EF Core + proveedor PostgreSQL (equivalente a spring-boot-starter-data-jpa + mysql-connector-j) -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.8" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.10" />
+
+    <!-- Traduce automaticamente las propiedades PascalCase de C# (Correo, FechaCreacion)
+         a snake_case en la base de datos (correo, fecha_creacion), que es la convencion
+         que ya usa todo el script SQL de Postgres. Sin esto, EF busca columnas con el
+         nombre exacto de la propiedad C# entre comillas y no las encuentra. -->
+    <PackageReference Include="EFCore.NamingConventions" Version="8.0.3" />
+
+    <!-- Nota: la autenticacion por cookies (AddCookie, CookieAuthenticationDefaults)
+         ya viene incluida en el framework compartido de ASP.NET Core (Microsoft.NET.Sdk.Web)
+         desde .NET Core 3.0 en adelante. No se referencia ningun paquete NuGet aparte
+         para esto: hacerlo con una version antigua (ej. 2.2.0) causaria conflictos
+         de compilacion. -->
+
+    <!-- Hash de password (equivalente a BCryptPasswordEncoder de Spring Security) -->
+    <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,28 @@
+@model DashboardJym.Models.Cliente
+@{
+    ViewData["Title"] = "Detalle de cliente";
+}
+
+<h1>@Model.Nombres @Model.Apellidos</h1>
+
+<dl>
+    <dt>DNI</dt><dd>@Model.Dni</dd>
+    <dt>Fecha de emisión del DNI</dt><dd>@(Model.FechaEmisionDni?.ToString("dd/MM/yyyy"))</dd>
+    <dt>Fecha de nacimiento</dt><dd>@(Model.FechaNacimiento?.ToString("dd/MM/yyyy"))</dd>
+    <dt>Primer nombre del padre</dt><dd>@Model.NombrePadre</dd>
+    <dt>Primer nombre de la madre</dt><dd>@Model.NombreMadre</dd>
+    <dt>WhatsApp</dt><dd>@Model.Whatsapp</dd>
+    <dt>Correo</dt><dd>@Model.Correo</dd>
+    <dt>Observaciones</dt><dd>@Model.Observaciones</dd>
+    <dt>Registrado por</dt><dd>@Model.UsuarioRegistro?.NombreCompleto</dd>
+    <dt>Fecha de registro</dt><dd>@(Model.FechaRegistro?.ToString("dd/MM/yyyy HH:mm"))</dd>
+</dl>
+
+<div class="barra">
+    <a class="btn btn-primario" asp-action="FormularioEditar" asp-route-id="@Model.Id"><i class="bi bi-pencil"></i> @(User.IsInRole("ABOGADO") ? "Editar cliente" : "Solicitar edición")</a>
+    <a class="btn btn-primario" asp-controller="Procesos" asp-action="Listar" asp-route-clienteId="@Model.Id"><i class="bi bi-briefcase"></i> Ver procesos</a>
+    <a class="btn btn-primario" asp-controller="Procesos" asp-action="FormularioNuevo" asp-route-clienteId="@Model.Id"><i class="bi bi-plus-lg"></i> Nuevo proceso</a>
+    <a class="btn btn-primario" asp-controller="Pagos" asp-action="Listar" asp-route-clienteId="@Model.Id"><i class="bi bi-cash-coin"></i> Ver pagos</a>
+    <a class="btn btn-primario" asp-controller="Pagos" asp-action="FormularioNuevo" asp-route-clienteId="@Model.Id"><i class="bi bi-plus-lg"></i> Nuevo pago</a>
+    <a class="btn btn-primario" asp-controller="Agenda" asp-action="FormularioNuevo" asp-route-clienteId="@Model.Id"><i class="bi bi-calendar-plus"></i> Nueva actividad de agenda</a>
+</div>

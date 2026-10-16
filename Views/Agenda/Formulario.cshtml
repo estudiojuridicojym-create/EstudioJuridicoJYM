@@ -1,0 +1,77 @@
+@model DashboardJym.Models.ActividadAgenda
+@{
+    bool esNuevo = (bool)(ViewData["EsNuevo"] ?? true);
+    ViewData["Title"] = esNuevo ? "Nueva actividad" : "Editar actividad";
+    var clientes = (List<DashboardJym.Models.Cliente>)ViewBag.Clientes;
+    var procesos = (List<DashboardJym.Models.Proceso>)ViewBag.Procesos;
+    var usuarios = (List<DashboardJym.Models.Usuario>)ViewBag.Usuarios;
+}
+
+<h1>@(esNuevo ? "Nueva actividad" : "Editar actividad")</h1>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <p class="error">Revisa los campos marcados: hay datos obligatorios o inválidos.</p>
+}
+
+<form method="post"
+      asp-action="@(esNuevo ? "Registrar" : "Actualizar")"
+      asp-route-id="@(esNuevo ? null : Model.Id)">
+    @Html.AntiForgeryToken()
+
+    <div class="grid">
+        <div class="campo full"><label asp-for="Titulo">Título</label><input asp-for="Titulo" required></div>
+
+        <div class="campo">
+            <label>Tipo</label>
+            <select asp-for="Tipo" required>
+                <option value="">-- Seleccionar --</option>
+                @foreach (var t in (DashboardJym.Models.TipoAgenda[])ViewBag.Tipos)
+                {
+                    <option value="@t">@t</option>
+                }
+            </select>
+        </div>
+        <div class="campo">
+            <label>Cliente (opcional)</label>
+            <select asp-for="ClienteId">
+                <option value="">-- Sin cliente --</option>
+                @foreach (var c in clientes)
+                {
+                    <option value="@c.Id">@c.Nombres @c.Apellidos</option>
+                }
+            </select>
+        </div>
+
+        <div class="campo">
+            <label>Proceso (opcional)</label>
+            <select asp-for="ProcesoId">
+                <option value="">-- Sin proceso --</option>
+                @foreach (var p in procesos)
+                {
+                    <option value="@p.Id">@p.Materia</option>
+                }
+            </select>
+        </div>
+        <div class="campo">
+            <label>Responsable</label>
+            <select asp-for="ResponsableId" required>
+                <option value="">-- Seleccionar --</option>
+                @foreach (var u in usuarios)
+                {
+                    <option value="@u.Id">@u.Nombres @u.Apellidos</option>
+                }
+            </select>
+        </div>
+
+        <div class="campo"><label asp-for="Fecha">Fecha</label><input asp-for="Fecha" type="date" value="@Model.Fecha.ToString("yyyy-MM-dd")" required></div>
+        <div class="campo"><label asp-for="Hora">Hora</label><input asp-for="Hora" type="time" required></div>
+
+        <div class="campo"><label asp-for="Duracion">Duración (minutos)</label><input asp-for="Duracion" type="number" min="0"></div>
+        <div class="campo"><label asp-for="Lugar">Lugar</label><input asp-for="Lugar"></div>
+
+        <div class="campo full"><label asp-for="Observaciones">Observaciones</label><textarea asp-for="Observaciones" rows="2"></textarea></div>
+    </div>
+
+    <button type="submit" class="btn btn-primario" style="margin-top:16px;">@(esNuevo ? "Registrar actividad" : "Guardar cambios")</button>
+</form>

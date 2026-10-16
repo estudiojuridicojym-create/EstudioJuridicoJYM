@@ -1,0 +1,41 @@
+@model List<DashboardJym.Models.Pago>
+@{
+    ViewData["Title"] = "Pagos";
+}
+
+<h1>Pagos</h1>
+
+@if (TempData["Mensaje"] != null)
+{
+    <p class="mensaje">@TempData["Mensaje"]</p>
+}
+
+<div class="barra">
+    <a class="btn btn-primario" asp-action="Listar">Todos</a>
+    <a class="btn btn-primario" asp-action="Listar" asp-route-pendientes="true">Pendientes</a>
+    <a class="btn btn-primario" asp-action="FormularioNuevo" style="margin-left:auto;"><i class="bi bi-plus-lg"></i> Nuevo pago</a>
+</div>
+
+<div class="tabla-wrap">
+<table>
+    <thead>
+        <tr><th>Cliente</th><th>Concepto</th><th>Tipo</th><th>Monto</th><th>Cuotas</th><th>Forma de pago</th><th>Estado</th><th></th></tr>
+    </thead>
+    <tbody>
+        @foreach (var p in Model)
+        {
+            <tr>
+                <td>@p.Cliente?.Nombres @p.Cliente?.Apellidos</td>
+                <td>@p.Concepto</td>
+                <td>@(p.TipoPago == DashboardJym.Models.TipoPago.EXTRA ? "Extra" : "Honorarios")</td>
+                <td>S/ @p.MontoTotal</td>
+                <td>@p.NumeroCuotas</td>
+                <td>@p.FormaPago</td>
+                <td><span class="badge @p.Estado">@p.Estado</span></td>
+                <td><a asp-action="VerDetalle" asp-route-id="@p.Id">Ver</a></td>
+            </tr>
+        }
+    </tbody>
+</table>
+</div>
+<partial name="_Paginador" />

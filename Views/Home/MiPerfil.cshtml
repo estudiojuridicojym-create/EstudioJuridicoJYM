@@ -1,0 +1,41 @@
+@model DashboardJym.Models.Usuario
+@{
+    ViewData["Title"] = "Mi perfil";
+}
+
+<h1>Mi perfil</h1>
+
+@if (TempData["Mensaje"] != null)
+{
+    <p class="mensaje">@TempData["Mensaje"]</p>
+}
+@if (TempData["Error"] != null)
+{
+    <p class="error">@TempData["Error"]</p>
+}
+
+<dl>
+    <dt>Nombres</dt><dd>@Model.Nombres</dd>
+    <dt>Apellidos</dt><dd>@Model.Apellidos</dd>
+    <dt>DNI</dt><dd>@Model.Dni</dd>
+    <dt>Correo</dt><dd>@Model.Correo</dd>
+    <dt>Teléfono</dt><dd>@Model.Telefono</dd>
+</dl>
+
+<h2 style="margin-top:28px;"><i class="bi bi-shield-lock"></i> Cambiar contraseña</h2>
+<form method="post" asp-action="CambiarPassword" style="max-width:380px; display:flex; flex-direction:column; gap:14px;">
+    @Html.AntiForgeryToken()
+    <div class="campo">
+        <label>Contraseña actual</label>
+        <input type="password" name="passwordActual" required>
+    </div>
+    <div class="campo">
+        <label>Nueva contraseña</label>
+        <input type="password" name="passwordNueva" required minlength="8">
+    </div>
+    <div class="campo">
+        <label>Confirmar nueva contraseña</label>
+        <input type="password" name="passwordConfirmacion" required minlength="8">
+    </div>
+    <button type="submit" class="btn btn-primario" style="align-self:flex-start;">Actualizar contraseña</button>
+</form>

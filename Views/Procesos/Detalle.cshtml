@@ -1,0 +1,86 @@
+@model DashboardJym.Models.Proceso
+@{
+    ViewData["Title"] = "Detalle de proceso";
+    var actuaciones = (List<DashboardJym.Models.ActuacionProceso>)ViewBag.Actuaciones;
+}
+
+<h1>@Model.Materia</h1>
+
+<dl>
+    <dt>Cliente</dt><dd><a asp-controller="Clientes" asp-action="VerDetalle" asp-route-id="@Model.Cliente!.Id">@Model.Cliente.Nombres @Model.Cliente.Apellidos</a></dd>
+    <dt>Tipo de proceso</dt><dd>@Model.TipoProceso?.Nombre</dd>
+    <dt>Descripción</dt><dd>@Model.Descripcion</dd>
+    <dt>Último actuado</dt><dd>@(string.IsNullOrWhiteSpace(Model.UltimoActuado) ? "-" : Model.UltimoActuado)</dd>
+    <dt>N° de expediente</dt><dd>@(string.IsNullOrWhiteSpace(Model.NumeroExpediente) ? "-" : Model.NumeroExpediente)</dd>
+    <dt>N° de carpeta</dt><dd>@(string.IsNullOrWhiteSpace(Model.NumeroCarpeta) ? "-" : Model.NumeroCarpeta)</dd>
+    <dt>Juzgado / Fiscalía</dt><dd>@Model.JuzgadoFiscalia</dd>
+    <dt>Especialista legal</dt><dd>@Model.EspecialistaLegal</dd>
+    <dt>Distrito judicial</dt><dd>@Model.DistritoJudicial</dd>
+    <dt>Fecha de inicio</dt><dd>@(Model.FechaInicio?.ToString("dd/MM/yyyy"))</dd>
+    <dt>Estado</dt><dd><span class="badge @Model.Estado">@Model.Estado</span></dd>
+    <dt>Prioridad</dt><dd><span class="badge prio-@Model.Prioridad">@Model.Prioridad</span></dd>
+    <dt>Asesor legal (atiende)</dt><dd>@(Model.AsesorResponsable != null ? $"{Model.AsesorResponsable.Nombres} {Model.AsesorResponsable.Apellidos}" : "-")</dd>
+    <dt>Abogado responsable</dt>
+    <dd>
+        @if (Model.AbogadoResponsable != null)
+        {
+            @($"{Model.AbogadoResponsable.Nombres} {Model.AbogadoResponsable.Apellidos}")
+        }
+        else
+        {
+            <span class="badge" style="background:var(--gris-texto)">Aún no derivado</span>
+        }
+    </dd>
+    <dt>Observaciones</dt><dd>@Model.Observaciones</dd>
+    <dt>Registrado por</dt><dd>@Model.UsuarioRegistro?.NombreCompleto</dd>
+    <dt>Fecha de registro</dt><dd>@(Model.FechaRegistro?.ToString("dd/MM/yyyy HH:mm"))</dd>
+</dl>
+
+<a class="btn btn-primario" asp-action="FormularioEditar" asp-route-id="@Model.Id"><i class="bi bi-pencil"></i> @(User.IsInRole("ABOGADO") ? "Editar proceso" : "Solicitar edición")</a>
+
+@if (TempData["Mensaje"] != null)
+{
+    <p class="mensaje" style="margin-top:16px;">@TempData["Mensaje"]</p>
+}
+
+<h2 style="margin-top:30px;"><i class="bi bi-clock-history"></i> Cronología del expediente</h2>
+<p style="color:var(--gris-texto); font-size:12.5px; max-width:600px; margin-top:-8px;">
+    Cada escrito presentado, resolución recibida o diligencia realizada queda registrada aquí, en orden, y no se puede editar ni borrar después — es el historial real del expediente.
+</p>
+
+<form method="post" asp-action="RegistrarActuacion" asp-route-id="@Model.Id"
+      style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; margin:14px 0 20px;">
+    @Html.AntiForgeryToken()
+    <div class="campo">
+        <label>Fecha</label>
+        <input type="date" name="fecha" value="@DateTime.Today.ToString("yyyy-MM-dd")" required style="width:160px;">
+    </div>
+    <div class="campo" style="flex:1; min-width:280px;">
+        <label>Descripción de la actuación</label>
+        <input type="text" name="descripcion" required placeholder="Ej: Se presentó escrito de apelación" style="width:100%;">
+    </div>
+    <button type="submit" class="btn btn-primario"><i class="bi bi-plus-circle"></i> Agregar</button>
+</form>
+
+@if (actuaciones.Count > 0)
+{
+    <div class="tabla-wrap">
+    <table>
+        <thead><tr><th>Fecha</th><th>Descripción</th><th>Registrado por</th></tr></thead>
+        <tbody>
+            @foreach (var a in actuaciones)
+            {
+                <tr>
+                    <td style="white-space:nowrap;">@a.Fecha.ToString("dd/MM/yyyy")</td>
+                    <td>@a.Descripcion</td>
+                    <td style="white-space:nowrap;">@a.UsuarioRegistro?.NombreCompleto</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    </div>
+}
+else
+{
+    <div class="panel-vacio">Todavía no se registró ninguna actuación en este expediente.</div>
+}

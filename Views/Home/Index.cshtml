@@ -1,0 +1,183 @@
+@using DashboardJym.Models
+@{
+    ViewData["Title"] = "Inicio";
+    var pagosPendientes = (List<Pago>)ViewBag.PagosPendientes;
+    var proximasCitas = (List<ActividadAgenda>)ViewBag.ProximasCitas;
+    var proximasAudiencias = (List<ActividadAgenda>)ViewBag.ProximasAudiencias;
+    var mensajesRecientes = (List<Mensaje>)ViewBag.MensajesRecientes;
+    var notificacionesRecientes = (List<Notificacion>)ViewBag.NotificacionesRecientes;
+}
+
+<div style="background:linear-gradient(135deg, var(--navy) 0%, #0a1521 100%); border-radius:var(--radius); padding:26px 30px; margin-bottom:22px; box-shadow:var(--shadow-md); position:relative; overflow:hidden;">
+    <div style="position:absolute; left:0; right:0; bottom:0; height:3px; background:linear-gradient(90deg, transparent, var(--red) 50%, transparent);"></div>
+    <h1 style="color:#fff; margin-bottom:6px;">Bienvenido/a, <span style="color:var(--red);">@User.FindFirst(System.Security.Claims.ClaimTypes.GivenName)?.Value</span></h1>
+    <p style="color:rgba(255,255,255,.65); margin:0; font-size:13.5px;">Este es el resumen de actividad del Estudio Jurídico JYM.</p>
+</div>
+
+@{
+    int audienciasHoy = (int)ViewBag.AudienciasHoy;
+    int eventosSemana = (int)ViewBag.EventosSemana;
+    int cantidadVencidas = (int)ViewBag.CantidadCuotasVencidas;
+    decimal montoVencidas = (decimal)ViewBag.MontoCuotasVencidas;
+    decimal porCobrar = (decimal)ViewBag.TotalPorCobrar;
+    decimal ingresosMes = (decimal)ViewBag.IngresosMes;
+    int procesosActivos = (int)ViewBag.ProcesosActivos;
+    int? solicitudesPendientes = ViewBag.SolicitudesPendientes as int?;
+}
+
+<div class="indicadores">
+    <a class="tarjeta-ind @(audienciasHoy > 0 ? "alerta" : "")" asp-controller="Agenda" asp-action="Listar">
+        <div class="ind-numero">@audienciasHoy</div>
+        <div class="ind-etiqueta"><i class="bi bi-bank"></i> Audiencias hoy</div>
+    </a>
+    <a class="tarjeta-ind" asp-controller="Agenda" asp-action="Listar">
+        <div class="ind-numero">@eventosSemana</div>
+        <div class="ind-etiqueta"><i class="bi bi-calendar-week"></i> Eventos esta semana</div>
+    </a>
+    <a class="tarjeta-ind @(cantidadVencidas > 0 ? "alerta" : "ok")" asp-controller="Pagos" asp-action="Listar">
+        <div class="ind-numero">@cantidadVencidas</div>
+        <div class="ind-etiqueta"><i class="bi bi-exclamation-octagon"></i> Cuotas vencidas (S/ @montoVencidas.ToString("N2"))</div>
+    </a>
+    <a class="tarjeta-ind tibio" asp-controller="Pagos" asp-action="Listar">
+        <div class="ind-numero">S/ @porCobrar.ToString("N2")</div>
+        <div class="ind-etiqueta"><i class="bi bi-cash-stack"></i> Total por cobrar</div>
+    </a>
+    <a class="tarjeta-ind ok" asp-controller="Pagos" asp-action="Listar">
+        <div class="ind-numero">S/ @ingresosMes.ToString("N2")</div>
+        <div class="ind-etiqueta"><i class="bi bi-graph-up-arrow"></i> Ingresos del mes</div>
+    </a>
+    <a class="tarjeta-ind" asp-controller="Procesos" asp-action="Listar">
+        <div class="ind-numero">@procesosActivos</div>
+        <div class="ind-etiqueta"><i class="bi bi-briefcase"></i> Procesos activos</div>
+    </a>
+    @if (solicitudesPendientes.HasValue)
+    {
+        <a class="tarjeta-ind @(solicitudesPendientes > 0 ? "tibio" : "ok")" asp-controller="SolicitudesCambio" asp-action="Listar">
+            <div class="ind-numero">@solicitudesPendientes</div>
+            <div class="ind-etiqueta"><i class="bi bi-hourglass-split"></i> Solicitudes por aprobar</div>
+        </a>
+    }
+</div>
+
+<div class="paneles">
+
+    <div class="panel">
+        <div class="panel-titulo">
+            <span><i class="bi bi-cash-coin"></i> Pagos pendientes de confirmación</span>
+            <a asp-controller="Pagos" asp-action="Listar" asp-route-pendientes="true">Ver todos</a>
+        </div>
+        @if (pagosPendientes.Count > 0)
+        {
+            <ul class="panel-lista">
+                @foreach (var p in pagosPendientes)
+                {
+                    <li>
+                        <a asp-controller="Pagos" asp-action="VerDetalle" asp-route-id="@p.Id" style="text-decoration:none; color:inherit;">
+                            <div class="linea1">@p.Cliente?.Nombres @p.Cliente?.Apellidos — S/ @p.MontoTotal</div>
+                            <div class="linea2">@p.Concepto · registrado por @p.UsuarioRegistro?.Nombres</div>
+                        </a>
+                    </li>
+                }
+            </ul>
+        }
+        else
+        {
+            <div class="panel-vacio">No hay pagos pendientes de confirmación.</div>
+        }
+    </div>
+
+    <div class="panel">
+        <div class="panel-titulo">
+            <span><i class="bi bi-calendar-check"></i> Próximas citas</span>
+            <a asp-controller="Agenda" asp-action="Calendario">Ver calendario</a>
+        </div>
+        @if (proximasCitas.Count > 0)
+        {
+            <ul class="panel-lista">
+                @foreach (var c in proximasCitas)
+                {
+                    <li>
+                        <div class="linea1">@c.Titulo</div>
+                        <div class="linea2">@c.Fecha.ToString("dd/MM/yyyy") @c.Hora.ToString(@"hh\:mm") · @(c.Cliente != null ? $"{c.Cliente.Nombres} {c.Cliente.Apellidos}" : "Sin cliente")</div>
+                    </li>
+                }
+            </ul>
+        }
+        else
+        {
+            <div class="panel-vacio">No hay citas próximas.</div>
+        }
+    </div>
+
+    <div class="panel">
+        <div class="panel-titulo">
+            <span><i class="bi bi-bank"></i> Próximas audiencias</span>
+            <a asp-controller="Agenda" asp-action="Listar">Ver agenda</a>
+        </div>
+        @if (proximasAudiencias.Count > 0)
+        {
+            <ul class="panel-lista">
+                @foreach (var a in proximasAudiencias)
+                {
+                    <li>
+                        <div class="linea1">@a.Titulo</div>
+                        <div class="linea2">@a.Fecha.ToString("dd/MM/yyyy") @a.Hora.ToString(@"hh\:mm") · @(a.Lugar ?? "Lugar por confirmar")</div>
+                    </li>
+                }
+            </ul>
+        }
+        else
+        {
+            <div class="panel-vacio">No hay audiencias próximas.</div>
+        }
+    </div>
+
+    <div class="panel">
+        <div class="panel-titulo">
+            <span><i class="bi bi-chat-dots"></i> Mensajes recientes</span>
+            <a asp-controller="Mensajes" asp-action="ListarContactos">Ver mensajes</a>
+        </div>
+        @if (mensajesRecientes.Count > 0)
+        {
+            <ul class="panel-lista">
+                @foreach (var m in mensajesRecientes)
+                {
+                    <li>
+                        <a asp-controller="Mensajes" asp-action="VerConversacion" asp-route-otroUsuarioId="@m.RemitenteId" style="text-decoration:none; color:inherit;">
+                            <div class="linea1">@m.Remitente?.Nombres @m.Remitente?.Apellidos</div>
+                            <div class="linea2">@m.Contenido</div>
+                        </a>
+                    </li>
+                }
+            </ul>
+        }
+        else
+        {
+            <div class="panel-vacio">No tienes mensajes todavía.</div>
+        }
+    </div>
+
+    <div class="panel full" style="grid-column: 1 / -1;">
+        <div class="panel-titulo">
+            <span><i class="bi bi-bell"></i> Notificaciones</span>
+            <a asp-controller="Notificaciones" asp-action="Listar">Ver todas</a>
+        </div>
+        @if (notificacionesRecientes.Count > 0)
+        {
+            <ul class="panel-lista">
+                @foreach (var n in notificacionesRecientes)
+                {
+                    <li>
+                        <div class="linea1">@n.Titulo</div>
+                        <div class="linea2">@n.Mensaje</div>
+                    </li>
+                }
+            </ul>
+        }
+        else
+        {
+            <div class="panel-vacio">No tienes notificaciones.</div>
+        }
+    </div>
+
+</div>

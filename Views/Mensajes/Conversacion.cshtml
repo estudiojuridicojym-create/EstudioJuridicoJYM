@@ -1,0 +1,25 @@
+@model List<DashboardJym.Models.Mensaje>
+@{
+    var otroUsuario = (DashboardJym.Models.Usuario)ViewBag.OtroUsuario;
+    long usuarioActualId = ViewBag.UsuarioActualId;
+    ViewData["Title"] = "Conversación";
+}
+
+<h1>Conversación con @otroUsuario.Nombres @otroUsuario.Apellidos</h1>
+
+<div class="hilo">
+    @foreach (var m in Model)
+    {
+        var esMia = m.RemitenteId == usuarioActualId;
+        <div class="burbuja @(esMia ? "mia" : "otro")">
+            <span>@m.Contenido</span>
+            <span class="hora">@m.FechaEnvio.ToString("dd/MM/yyyy HH:mm")</span>
+        </div>
+    }
+</div>
+
+<form style="display:flex; gap:8px; max-width:620px;" method="post" asp-action="Enviar" asp-route-otroUsuarioId="@otroUsuario.Id">
+    @Html.AntiForgeryToken()
+    <textarea name="contenido" rows="2" style="flex:1;" placeholder="Escribe un mensaje..." required></textarea>
+    <button type="submit" class="btn btn-primario">Enviar</button>
+</form>

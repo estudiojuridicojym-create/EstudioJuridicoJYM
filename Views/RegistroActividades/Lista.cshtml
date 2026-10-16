@@ -1,0 +1,64 @@
+@model List<DashboardJym.Models.RegistroActividad>
+@{
+    ViewData["Title"] = "Registro de actividades";
+    var modulos = (string[])ViewBag.Modulos;
+    var usuarios = (List<DashboardJym.Models.Usuario>)ViewBag.Usuarios;
+    string? moduloSeleccionado = ViewBag.ModuloSeleccionado;
+    long? usuarioSeleccionado = ViewBag.UsuarioSeleccionado;
+}
+
+<h1>Registro de actividades</h1>
+<p style="font-size:13px; color:var(--gris-texto); max-width:640px; margin-bottom:18px;">
+    Historial de auditoría, de solo lectura. No puede crearse, editarse ni eliminarse manualmente:
+    cada entrada la genera el sistema automáticamente.
+</p>
+
+<form class="barra" method="get" asp-action="Listar">
+    <select name="modulo" onchange="this.form.submit()">
+        <option value="">Todos los módulos</option>
+        @foreach (var m in modulos)
+        {
+            if (m == moduloSeleccionado)
+            {
+                <option value="@m" selected>@m</option>
+            }
+            else
+            {
+                <option value="@m">@m</option>
+            }
+        }
+    </select>
+    <select name="usuarioId" onchange="this.form.submit()">
+        <option value="">Todos los usuarios</option>
+        @foreach (var u in usuarios)
+        {
+            if (u.Id == usuarioSeleccionado)
+            {
+                <option value="@u.Id" selected>@u.Nombres @u.Apellidos</option>
+            }
+            else
+            {
+                <option value="@u.Id">@u.Nombres @u.Apellidos</option>
+            }
+        }
+    </select>
+    <a class="btn btn-primario" asp-action="Listar">Limpiar filtros</a>
+</form>
+
+<div class="tabla-wrap">
+<table>
+    <thead><tr><th>Fecha y hora</th><th>Usuario</th><th>Módulo</th><th>Acción</th><th>Descripción</th></tr></thead>
+    <tbody>
+        @foreach (var r in Model)
+        {
+            <tr>
+                <td>@r.FechaHora.ToString("dd/MM/yyyy HH:mm")</td>
+                <td>@r.Usuario?.Nombres @r.Usuario?.Apellidos</td>
+                <td><span class="badge" style="background:var(--azul-corporativo);">@r.Modulo</span></td>
+                <td>@r.Accion</td>
+                <td>@r.Descripcion</td>
+            </tr>
+        }
+    </tbody>
+</table>
+</div>

@@ -1,0 +1,106 @@
+@model DashboardJym.Models.Pago
+@{
+    bool esNuevo = (bool)(ViewData["EsNuevo"] ?? true);
+    ViewData["Title"] = esNuevo ? "Registrar pago" : "Editar pago";
+    var clientes = (List<DashboardJym.Models.Cliente>)ViewBag.Clientes;
+    var procesos = (List<DashboardJym.Models.Proceso>)ViewBag.Procesos;
+}
+
+<h1>@(esNuevo ? "Registrar pago" : "Editar pago")</h1>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <p class="error">Revisa los campos marcados: hay datos obligatorios o inválidos.</p>
+}
+
+<form method="post" asp-action="@(esNuevo ? "Registrar" : "Editar")" asp-route-id="@(esNuevo ? null : Model.Id)">
+    @Html.AntiForgeryToken()
+
+    <div class="grid">
+        <div class="campo full">
+            <label>Tipo de pago</label>
+            <select asp-for="TipoPago" id="tipoPagoSelect">
+                <option value="HONORARIOS">Honorarios (se divide en 3 cuotas: 50% / 25% / 25%)</option>
+                <option value="EXTRA">Pago extra — tasas, edictos, gastos (pago único, aparte del honorario)</option>
+            </select>
+        </div>
+
+        <div class="campo">
+            <label>Cliente</label>
+            <select asp-for="ClienteId" required>
+                <option value="">-- Seleccionar cliente --</option>
+                @foreach (var c in clientes)
+                {
+                    <option value="@c.Id">@c.Nombres @c.Apellidos (@c.Dni)</option>
+                }
+            </select>
+        </div>
+        <div class="campo">
+            <label>Proceso (opcional)</label>
+            <select asp-for="ProcesoId">
+                <option value="">-- Sin asociar --</option>
+                @foreach (var p in procesos)
+                {
+                    <option value="@p.Id">@p.Materia (@p.Cliente?.Nombres @p.Cliente?.Apellidos)</option>
+                }
+            </select>
+        </div>
+
+        <div class="campo full">
+            <label asp-for="Concepto">Concepto</label>
+            <input asp-for="Concepto" required list="listaConceptos" autocomplete="off" placeholder="Ej: Honorarios, Tasas judiciales, Edictos...">
+            <datalist id="listaConceptos">
+                <option value="Honorarios profesionales"></option>
+                <option value="Tasas judiciales"></option>
+                <option value="Edictos"></option>
+                <option value="Copias certificadas"></option>
+                <option value="Aranceles registrales"></option>
+                <option value="Notificaciones"></option>
+                <option value="Gastos administrativos"></option>
+            </datalist>
+        </div>
+
+        <div class="campo"><label asp-for="MontoTotal">Monto total (S/)</label><input asp-for="MontoTotal" type="number" step="0.01" min="0.01" required></div>
+
+        <div class="campo">
+            <label>Forma de pago</label>
+            <select asp-for="FormaPago">
+                @foreach (var f in (DashboardJym.Models.FormaPago[])ViewBag.FormasPago)
+                {
+                    <option value="@f">@f</option>
+                }
+            </select>
+        </div>
+        <div class="campo"><label asp-for="FechaPago">Fecha de pago</label><input asp-for="FechaPago" type="date" value="@Model.FechaPago.ToString("yyyy-MM-dd")" required></div>
+
+        <div class="campo full"><label asp-for="Observaciones">Observaciones</label><textarea asp-for="Observaciones" rows="3"></textarea></div>
+    </div>
+
+    <p id="textoAyudaHonorarios" style="color:var(--gris-texto); font-size:12.5px; max-width:600px;">
+        Las cuotas se generan automáticamente con la estructura del estudio:
+        <strong>50% al inicio</strong>, y el resto dividido en dos cuotas del
+        <strong>25%</strong> cada una (vencimientos al mes y a los dos meses
+        de la fecha de pago). Otro usuario (no tú) deberá confirmar u
+        observar este pago después.
+    </p>
+    <p id="textoAyudaExtra" style="color:var(--gris-texto); font-size:12.5px; max-width:600px; display:none;">
+        Este es un <strong>pago aparte del honorario</strong> (tasas, edictos, gastos
+        externos, etc.): se registra como <strong>un único pago</strong>, sin dividirse
+        en cuotas. Otro usuario (no tú) deberá confirmar u observar este pago después.
+    </p>
+
+    <button type="submit" class="btn btn-primario" style="margin-top:10px;">@(esNuevo ? "Registrar pago" : "Guardar cambios")</button>
+</form>
+
+<script>
+    var selectorTipo = document.getElementById('tipoPagoSelect');
+    var textoHonorarios = document.getElementById('textoAyudaHonorarios');
+    var textoExtra = document.getElementById('textoAyudaExtra');
+    function actualizarTextoAyuda() {
+        var esExtra = selectorTipo.value === 'EXTRA';
+        textoHonorarios.style.display = esExtra ? 'none' : 'block';
+        textoExtra.style.display = esExtra ? 'block' : 'none';
+    }
+    selectorTipo.addEventListener('change', actualizarTextoAyuda);
+    actualizarTextoAyuda();
+</script>

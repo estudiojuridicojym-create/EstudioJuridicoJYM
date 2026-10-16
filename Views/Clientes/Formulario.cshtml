@@ -1,0 +1,35 @@
+@model DashboardJym.Models.Cliente
+@{
+    bool esNuevo = (bool)(ViewData["EsNuevo"] ?? true);
+    ViewData["Title"] = esNuevo ? "Registrar cliente" : "Editar cliente";
+}
+
+<h1>@(esNuevo ? "Registrar cliente" : "Editar cliente")</h1>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <p class="error">Revisa los campos marcados: hay datos obligatorios o inválidos.</p>
+}
+
+<form method="post"
+      asp-action="@(esNuevo ? "Registrar" : "Actualizar")"
+      asp-route-id="@(esNuevo ? null : Model.Id)">
+    @Html.AntiForgeryToken()
+
+    <div class="grid">
+        <div class="campo"><label asp-for="Nombres">Nombres</label><input asp-for="Nombres" required></div>
+        <div class="campo"><label asp-for="Apellidos">Apellidos</label><input asp-for="Apellidos" required></div>
+        <div class="campo"><label asp-for="Dni">DNI</label><input asp-for="Dni" maxlength="20" required></div>
+        <div class="campo"><label asp-for="FechaEmisionDni">Fecha de emisión del DNI</label><input asp-for="FechaEmisionDni" type="date" value="@Model.FechaEmisionDni?.ToString("yyyy-MM-dd")"></div>
+        <div class="campo"><label asp-for="FechaNacimiento">Fecha de nacimiento</label><input asp-for="FechaNacimiento" type="date" value="@Model.FechaNacimiento?.ToString("yyyy-MM-dd")"></div>
+
+        <div class="campo"><label asp-for="NombrePadre">Primer nombre del padre</label><input asp-for="NombrePadre"></div>
+        <div class="campo"><label asp-for="NombreMadre">Primer nombre de la madre</label><input asp-for="NombreMadre"></div>
+        <div class="campo"><label asp-for="Whatsapp">WhatsApp</label><input asp-for="Whatsapp"></div>
+        <div class="campo full"><label asp-for="Correo">Correo</label><input asp-for="Correo" type="email"></div>
+
+        <div class="campo full"><label asp-for="Observaciones">Observaciones</label><textarea asp-for="Observaciones" rows="3"></textarea></div>
+    </div>
+
+    <button type="submit" class="btn btn-primario" style="margin-top:16px;">@(esNuevo ? "Registrar cliente" : "Guardar cambios")</button>
+</form>

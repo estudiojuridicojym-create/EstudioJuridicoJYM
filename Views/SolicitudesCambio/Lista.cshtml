@@ -1,0 +1,85 @@
+@model List<DashboardJym.Models.SolicitudCambio>
+@{
+    ViewData["Title"] = "Solicitudes de cambio";
+    var estadoActual = (string)ViewBag.EstadoActual;
+}
+
+<h1>Solicitudes de cambio</h1>
+
+@if (TempData["Mensaje"] != null)
+{
+    <p class="aviso">@TempData["Mensaje"]</p>
+}
+
+<p style="color:var(--gris-texto); font-size:12.5px; max-width:640px;">
+    Aquí llegan las ediciones y desactivaciones propuestas por los asesores legales.
+    El registro original <strong>no cambia</strong> hasta que apruebes la solicitud.
+</p>
+
+<div class="barra">
+    <a class="btn @(estadoActual == "PENDIENTE" ? "btn-primario" : "")" href="/app/solicitudes?estado=PENDIENTE">Pendientes</a>
+    <a class="btn @(estadoActual == "APROBADA" ? "btn-primario" : "")" href="/app/solicitudes?estado=APROBADA">Aprobadas</a>
+    <a class="btn @(estadoActual == "RECHAZADA" ? "btn-primario" : "")" href="/app/solicitudes?estado=RECHAZADA">Rechazadas</a>
+</div>
+
+@if (!Model.Any())
+{
+    <p>No hay solicitudes en esta bandeja.</p>
+}
+else
+{
+    foreach (var s in Model)
+    {
+        <div class="tarjeta-solicitud">
+            <div class="cabecera">
+                <div>
+                    <span class="badge @(s.TipoAccion == DashboardJym.Models.TipoAccionSolicitud.DESACTIVAR ? "ANULADO" : "EN_PROCESO")">
+                        @(s.TipoAccion == DashboardJym.Models.TipoAccionSolicitud.DESACTIVAR ? "Desactivar" : "Editar")
+                    </span>
+                    <strong style="margin-left:8px;">@s.Descripcion</strong>
+                </div>
+                <span style="font-size:12px; color:var(--gris-texto);">
+                    @s.Modulo · @s.FechaSolicitud.ToString("dd/MM/yyyy HH:mm")
+                </span>
+            </div>
+
+            <p style="font-size:12.5px; margin:6px 0;">
+                Solicitado por <strong>@(s.Solicitante?.NombreCompleto)</strong>
+            </p>
+
+            @if (!string.IsNullOrWhiteSpace(s.ResumenCambios))
+            {
+                <pre class="resumen-cambios">@s.ResumenCambios</pre>
+            }
+
+            @if (s.Estado == DashboardJym.Models.EstadoSolicitud.PENDIENTE)
+            {
+                <div class="acciones-solicitud">
+                    <form method="post" asp-action="Aprobar" asp-route-id="@s.Id" style="display:inline;">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-confirmar"
+                                onclick="return confirm('¿Aprobar este cambio? Se aplicará al registro.');">
+                            <i class="bi bi-check-lg"></i> Aprobar
+                        </button>
+                    </form>
+                    <form method="post" asp-action="Rechazar" asp-route-id="@s.Id" style="display:inline; margin-left:8px;">
+                        @Html.AntiForgeryToken()
+                        <input type="text" name="motivo" placeholder="Motivo del rechazo (opcional)" style="max-width:260px;">
+                        <button type="submit" class="btn btn-peligro"><i class="bi bi-x-lg"></i> Rechazar</button>
+                    </form>
+                </div>
+            }
+            else
+            {
+                <p style="font-size:12.5px; color:var(--gris-texto); margin-top:8px;">
+                    <strong>@s.Estado</strong> por @(s.Revisor?.NombreCompleto)
+                    el @(s.FechaRevision?.ToString("dd/MM/yyyy HH:mm"))
+                    @if (!string.IsNullOrWhiteSpace(s.MotivoRechazo))
+                    {
+                        <text> — Motivo: @s.MotivoRechazo</text>
+                    }
+                </p>
+            }
+        </div>
+    }
+}

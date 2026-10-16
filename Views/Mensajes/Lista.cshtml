@@ -1,0 +1,32 @@
+@model List<DashboardJym.Models.Usuario>
+@{
+    ViewData["Title"] = "Mensajes";
+    var noLeidosPorContacto = (Dictionary<long, int>)ViewBag.NoLeidosPorContacto;
+}
+
+<h1>Mensajes</h1>
+
+<div class="tabla-wrap" style="max-width:600px;">
+<table>
+    <thead><tr><th>Contacto</th><th>No leídos</th></tr></thead>
+    <tbody>
+        @foreach (var c in Model)
+        {
+            var noLeidos = noLeidosPorContacto.TryGetValue(c.Id, out var n) ? n : 0;
+            <tr>
+                <td>
+                    <a asp-action="VerConversacion" asp-route-otroUsuarioId="@c.Id" style="text-decoration:none; color:inherit;">
+                        @c.Nombres @c.Apellidos
+                    </a>
+                </td>
+                <td>
+                    @if (noLeidos > 0)
+                    {
+                        <span class="badge OBSERVADO">@noLeidos</span>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+</div>

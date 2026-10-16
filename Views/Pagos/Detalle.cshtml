@@ -1,0 +1,200 @@
+@model DashboardJym.Models.Pago
+@{
+    ViewData["Title"] = "Detalle de pago";
+    var cuotas = (List<DashboardJym.Models.Cuota>)ViewBag.Cuotas;
+    var abonos = (List<DashboardJym.Models.AbonoCuota>)ViewBag.Abonos;
+    bool esQuienRegistro = (bool)ViewBag.EsQuienRegistro;
+    bool puedeEditar = (bool)ViewBag.PuedeEditar;
+}
+
+<div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px;">
+    <h1 style="margin-bottom:0;">@Model.Concepto</h1>
+    @if (puedeEditar)
+    {
+        <div style="display:flex; gap:8px;">
+            <a class="btn btn-primario" href="@Url.Action("Editar", new { id = Model.Id })"><i class="bi bi-pencil"></i> Editar</a>
+            @if (User.IsInRole("ABOGADO"))
+            {
+                <form method="post" asp-action="Anular" asp-route-id="@Model.Id" style="display:inline-flex; gap:6px; align-items:center;"
+                      onsubmit="return confirm('¿Anular este pago? Sus cuotas quedarán anuladas y no se podrá deshacer.');">
+                    @Html.AntiForgeryToken()
+                    <input type="text" name="motivo" placeholder="Motivo de la anulación" required style="width:200px;">
+                    <button type="submit" class="btn btn-observar"><i class="bi bi-x-circle"></i> Anular</button>
+                </form>
+            }
+        </div>
+    }
+</div>
+
+@if (TempData["Mensaje"] != null)
+{
+    <p class="mensaje">@TempData["Mensaje"]</p>
+}
+
+<dl>
+    <dt>Cliente</dt><dd><a asp-controller="Clientes" asp-action="VerDetalle" asp-route-id="@Model.Cliente!.Id">@Model.Cliente.Nombres @Model.Cliente.Apellidos</a></dd>
+    <dt>Proceso</dt><dd>@(Model.Proceso != null ? Model.Proceso.Materia : "No asociado")</dd>
+    <dt>Tipo de pago</dt><dd>@(Model.TipoPago == DashboardJym.Models.TipoPago.EXTRA ? "Pago extra (tasas, edictos, gastos)" : "Honorarios (3 cuotas)")</dd>
+    <dt>Monto total</dt><dd>S/ @Model.MontoTotal</dd>
+    <dt>Forma de pago</dt><dd>@Model.FormaPago</dd>
+    <dt>N° de cuotas</dt><dd>@Model.NumeroCuotas</dd>
+    <dt>Estado</dt><dd><span class="badge @Model.Estado">@Model.Estado</span></dd>
+    <dt>Registrado por</dt><dd>@Model.UsuarioRegistro?.NombreCompleto — @Model.FechaRegistro</dd>
+    @if (Model.UsuarioConfirmacion != null)
+    {
+        <dt>Revisado por</dt><dd>@Model.UsuarioConfirmacion.NombreCompleto — @Model.FechaConfirmacion</dd>
+    }
+    <dt>Observaciones</dt><dd>@Model.Observaciones</dd>
+</dl>
+
+@if (Model.Estado == DashboardJym.Models.EstadoPago.PENDIENTE)
+{
+    if (!esQuienRegistro && User.IsInRole("ABOGADO"))
+    {
+        <div class="caja-accion">
+            <p><strong>Este pago está pendiente de confirmación.</strong></p>
+            <form method="post" asp-action="Confirmar" asp-route-id="@Model.Id" style="display:inline">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-confirmar"><i class="bi bi-check-lg"></i> Confirmar pago</button>
+            </form>
+            &nbsp;
+            <form method="post" asp-action="Observar" asp-route-id="@Model.Id" style="display:inline-flex; gap:6px; align-items:center;">
+                @Html.AntiForgeryToken()
+                <input type="text" name="motivo" placeholder="Motivo de la observación" required>
+                <button type="submit" class="btn btn-observar"><i class="bi bi-exclamation-triangle"></i> Observar pago</button>
+            </form>
+        </div>
+    }
+    else if (esQuienRegistro)
+    {
+        <p><em>Este pago lo registraste tú — debe confirmarlo u observarlo otro usuario.</em></p>
+    }
+    else
+    {
+        <p><em>Este pago está pendiente de confirmación. Solo un abogado puede confirmarlo u observarlo.</em></p>
+    }
+}
+@if (Model.Estado == DashboardJym.Models.EstadoPago.OBSERVADO)
+{
+    <div class="caja-accion">
+        <p><strong><i class="bi bi-exclamation-triangle"></i> Este pago fue observado.</strong></p>
+        @if (puedeEditar)
+        {
+            <p>Corrígelo desde "Editar": al guardar, vuelve a quedar pendiente para que otro usuario lo revise de nuevo.</p>
+        }
+        else
+        {
+            <p>Ya tiene abonos registrados, así que no se puede corregir. Un abogado puede anularlo si fue un error.</p>
+        }
+    </div>
+}
+
+<h2>Cuotas</h2>
+<div class="tabla-wrap">
+<table>
+    <thead><tr><th>#</th><th>Monto</th><th>Pagado</th><th>Saldo</th><th>Vencimiento</th><th>Estado</th>@if (User.IsInRole("ABOGADO")) { <th>Cambiar estado</th> }</tr></thead>
+    <tbody>
+        @foreach (var c in cuotas)
+        {
+            <tr>
+                <td>@c.NumeroCuota</td>
+                <td>S/ @c.Monto</td>
+                <td>S/ @c.MontoPagado</td>
+                <td>S/ @c.SaldoPendiente</td>
+                <td>
+                    @(c.FechaVencimiento?.ToString("dd/MM/yyyy"))
+                    @if (c.EstaVencida)
+                    {
+                        <span class="badge VENCIDA" title="Venció y sigue sin pagarse">VENCIDA</span>
+                    }
+                </td>
+                <td><span class="badge @c.Estado">@c.Estado</span></td>
+                @if (User.IsInRole("ABOGADO"))
+                {
+                <td>
+                    <form method="post" asp-action="CambiarEstadoCuota" asp-route-cuotaId="@c.Id" style="display:flex; gap:6px;">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="pagoId" value="@Model.Id" />
+                        <select name="estado">
+                            @foreach (var e in (DashboardJym.Models.EstadoCuota[])ViewBag.EstadosCuota)
+                            {
+                                if (e == c.Estado)
+                                {
+                                    <option value="@e" selected>@e</option>
+                                }
+                                else
+                                {
+                                    <option value="@e">@e</option>
+                                }
+                            }
+                        </select>
+                        <button type="submit" class="btn btn-primario">Guardar</button>
+                    </form>
+                </td>
+                }
+            </tr>
+        }
+    </tbody>
+</table>
+</div>
+
+@if (Model.Estado != DashboardJym.Models.EstadoPago.ANULADO)
+{
+    <div class="caja-accion">
+        <p><strong><i class="bi bi-cash-stack"></i> Registrar abono / adelanto</strong></p>
+        <p style="color:var(--gris-texto); font-size:12.5px; margin-top:-6px;">
+            Úsalo cuando el cliente paga menos de lo que corresponde a la cuota (abono parcial) o más
+            (adelanto de las siguientes cuotas). El monto se aplica automáticamente a la cuota pendiente
+            más antigua y, si sobra, sigue cubriendo las que siguen.
+        </p>
+        <form method="post" asp-action="RegistrarAbono" asp-route-id="@Model.Id" style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; margin-top:10px;">
+            @Html.AntiForgeryToken()
+            <div class="campo">
+                <label>Monto del abono</label>
+                <input type="number" name="monto" step="0.01" min="0.01" required style="width:140px;">
+            </div>
+            <div class="campo">
+                <label>Fecha</label>
+                <input type="date" name="fecha">
+            </div>
+            <div class="campo">
+                <label>Forma de pago</label>
+                <select name="formaPago">
+                    <option value="">-- Igual que el pago --</option>
+                    @foreach (var f in (DashboardJym.Models.FormaPago[])ViewBag.FormasPago)
+                    {
+                        <option value="@f">@f</option>
+                    }
+                </select>
+            </div>
+            <div class="campo" style="flex:1; min-width:200px;">
+                <label>Observación (opcional)</label>
+                <input type="text" name="observaciones" placeholder="Ej: adelanto por Yape" style="width:100%;">
+            </div>
+            <button type="submit" class="btn btn-confirmar"><i class="bi bi-plus-circle"></i> Registrar abono</button>
+        </form>
+    </div>
+}
+
+@if (abonos.Count > 0)
+{
+    <h2>Historial de abonos</h2>
+    <div class="tabla-wrap">
+    <table>
+        <thead><tr><th>Cuota</th><th>Monto</th><th>Fecha</th><th>Forma de pago</th><th>Registrado por</th><th>Observación</th></tr></thead>
+        <tbody>
+            @foreach (var a in abonos)
+            {
+                <tr>
+                    <td>#@a.Cuota?.NumeroCuota</td>
+                    <td>S/ @a.Monto</td>
+                    <td>@a.FechaAbono.ToString("dd/MM/yyyy")</td>
+                    <td>@a.FormaPago</td>
+                    <td>@a.UsuarioRegistro?.NombreCompleto</td>
+                    <td>@a.Observaciones</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    </div>
+}

@@ -1,0 +1,43 @@
+@*
+    Partial reutilizable para los controles de paginación.
+    Parámetros esperados en ViewData:
+      - "Pagina": (dynamic con .Pagina, .TotalPaginas, .TotalRegistros, .TienePaginaAnterior, .TienePaginaSiguiente)
+      - "RouteValuesExtra": objeto con los demás parámetros de la URL a conservar (ej. q, clienteId)
+*@
+@{
+    dynamic pag = ViewData["Pagina"]!;
+    object? extra = ViewData["RouteValuesExtra"];
+}
+@if (pag.TotalPaginas > 1)
+{
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-top:14px; font-size:12.5px; color:var(--gris-texto);">
+        <span>Página @pag.Pagina de @pag.TotalPaginas (@pag.TotalRegistros en total)</span>
+        <div style="display:flex; gap:8px;">
+            @if (pag.TienePaginaAnterior)
+            {
+                <a class="btn" style="background:var(--gris-claro); color:var(--navy);"
+                   href="@Url.Action(ViewContext.RouteData.Values["action"]!.ToString(), MergeRoute(extra, pag.Pagina - 1))">
+                    <i class="bi bi-chevron-left"></i> Anterior
+                </a>
+            }
+            @if (pag.TienePaginaSiguiente)
+            {
+                <a class="btn" style="background:var(--gris-claro); color:var(--navy);"
+                   href="@Url.Action(ViewContext.RouteData.Values["action"]!.ToString(), MergeRoute(extra, pag.Pagina + 1))">
+                    Siguiente <i class="bi bi-chevron-right"></i>
+                </a>
+            }
+        </div>
+    </div>
+}
+@functions {
+    // Combina los demás filtros de la URL (q, clienteId, pendientes, etc.)
+    // con el número de página, para que "Siguiente"/"Anterior" no pierdan
+    // el filtro que la persona ya había aplicado.
+    private RouteValueDictionary MergeRoute(object? extra, int pagina)
+    {
+        var valores = extra != null ? new RouteValueDictionary(extra) : new RouteValueDictionary();
+        valores["pagina"] = pagina;
+        return valores;
+    }
+}

@@ -1,0 +1,50 @@
+@model List<DashboardJym.Models.ActividadAgenda>
+@{
+    ViewData["Title"] = "Agenda";
+}
+
+<h1>Agenda — Próximas actividades</h1>
+
+@if (TempData["Mensaje"] != null)
+{
+    <p class="mensaje">@TempData["Mensaje"]</p>
+}
+
+<div class="barra">
+    <a class="btn btn-primario" asp-action="Calendario"><i class="bi bi-calendar3"></i> Ver calendario</a>
+    <a class="btn btn-primario" asp-action="FormularioNuevo"><i class="bi bi-plus-lg"></i> Nueva actividad</a>
+</div>
+
+<div class="tabla-wrap">
+<table>
+    <thead>
+        <tr><th>Título</th><th>Tipo</th><th>Cliente</th><th>Fecha</th><th>Hora</th><th>Responsable</th><th>Estado</th><th></th></tr>
+    </thead>
+    <tbody>
+        @foreach (var a in Model)
+        {
+            <tr>
+                <td>@a.Titulo</td>
+                <td>@a.Tipo</td>
+                <td>@(a.Cliente != null ? $"{a.Cliente.Nombres} {a.Cliente.Apellidos}" : "-")</td>
+                <td>@a.Fecha.ToString("dd/MM/yyyy")</td>
+                <td>@a.Hora.ToString(@"hh\:mm")</td>
+                <td>@a.Responsable?.Nombres</td>
+                <td><span class="badge @a.Estado">@a.Estado</span></td>
+                <td>
+                    <a asp-action="FormularioEditar" asp-route-id="@a.Id">Editar</a>
+                    <form method="post" asp-action="CambiarEstado" asp-route-id="@a.Id" style="display:inline; margin-left:6px;">
+                        @Html.AntiForgeryToken()
+                        <select name="estado" onchange="this.form.submit()">
+                            <option value="">Cambiar estado...</option>
+                            <option value="CONFIRMADA">Confirmar</option>
+                            <option value="REALIZADA">Marcar realizada</option>
+                            <option value="CANCELADA">Cancelar</option>
+                        </select>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+</div>

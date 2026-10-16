@@ -1,0 +1,184 @@
+@model DashboardJym.Models.Proceso
+@{
+    bool esNuevo = (bool)(ViewData["EsNuevo"] ?? true);
+    ViewData["Title"] = esNuevo ? "Registrar proceso" : "Editar proceso";
+    var tiposProceso = (List<DashboardJym.Models.TipoProceso>)ViewBag.TiposProceso;
+    var asesores = (List<DashboardJym.Models.Usuario>)ViewBag.Asesores;
+    var abogados = (List<DashboardJym.Models.Usuario>)ViewBag.Abogados;
+    var juzgados = (List<string>)ViewBag.Juzgados;
+
+    var clienteTextoInicial = Model.Cliente != null ? $"{Model.Cliente.Nombres} {Model.Cliente.Apellidos} ({Model.Cliente.Dni})" : "";
+    var tipoTextoInicial = Model.TipoProceso != null ? Model.TipoProceso.Nombre : "";
+
+    var clientesJson = System.Text.Json.JsonSerializer.Serialize(
+        ((List<DashboardJym.Models.Cliente>)ViewBag.Clientes).Select(c => new { id = c.Id, texto = $"{c.Nombres} {c.Apellidos} ({c.Dni})" }));
+    var tiposJson = System.Text.Json.JsonSerializer.Serialize(
+        tiposProceso.Select(t => new { id = t.Id, texto = t.Nombre }));
+}
+
+<h1>@(esNuevo ? "Registrar proceso" : "Editar proceso")</h1>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <p class="error">Revisa los campos marcados: hay datos obligatorios o inválidos.</p>
+}
+
+<form method="post"
+      asp-action="@(esNuevo ? "Registrar" : "Actualizar")"
+      asp-route-id="@(esNuevo ? null : Model.Id)">
+    @Html.AntiForgeryToken()
+
+    <div class="grid">
+        <div class="campo full">
+            <label>Cliente</label>
+            <div class="buscable" id="buscableCliente">
+                <input type="text" id="clienteTexto" autocomplete="off" placeholder="Escribe nombre, apellido o DNI para buscar..." value="@clienteTextoInicial">
+                <input type="hidden" name="ClienteId" id="clienteIdHidden" value="@(Model.ClienteId == 0 ? "" : Model.ClienteId.ToString())">
+                <div class="buscable-lista" id="clienteLista"></div>
+            </div>
+        </div>
+
+        <div class="campo">
+            <label>Tipo de proceso</label>
+            <div class="buscable" id="buscableTipo">
+                <input type="text" id="tipoTexto" autocomplete="off" placeholder="Escribe para buscar..." value="@tipoTextoInicial">
+                <input type="hidden" name="TipoProcesoId" id="tipoIdHidden" value="@(Model.TipoProcesoId == 0 ? "" : Model.TipoProcesoId.ToString())">
+                <div class="buscable-lista" id="tipoLista"></div>
+            </div>
+        </div>
+        <div class="campo"><label asp-for="Materia">Materia</label><input asp-for="Materia" required></div>
+
+        <div class="campo full"><label asp-for="Descripcion">Descripción del caso</label><textarea asp-for="Descripcion" rows="3"></textarea></div>
+
+        <div class="campo full"><label asp-for="UltimoActuado">Último actuado</label><textarea asp-for="UltimoActuado" rows="3" placeholder="Última notificación, resolución o diligencia registrada en el expediente..."></textarea></div>
+
+        <div class="campo"><label asp-for="NumeroExpediente">N° de expediente (si corresponde)</label><input asp-for="NumeroExpediente"></div>
+        <div class="campo"><label asp-for="NumeroCarpeta">N° de carpeta</label><input asp-for="NumeroCarpeta"></div>
+        <div class="campo">
+            <label asp-for="JuzgadoFiscalia">Juzgado / Fiscalía</label>
+            <input asp-for="JuzgadoFiscalia" list="listaJuzgados" autocomplete="off" placeholder="Escribe o elige uno existente...">
+            <datalist id="listaJuzgados">
+                @foreach (var j in juzgados)
+                {
+                    <option value="@j"></option>
+                }
+            </datalist>
+        </div>
+        <div class="campo"><label asp-for="EspecialistaLegal">Especialista legal</label><input asp-for="EspecialistaLegal"></div>
+        <div class="campo"><label asp-for="DistritoJudicial">Distrito judicial</label><input asp-for="DistritoJudicial"></div>
+        <div class="campo"><label asp-for="FechaInicio">Fecha de inicio</label><input asp-for="FechaInicio" type="date" value="@Model.FechaInicio?.ToString("yyyy-MM-dd")"></div>
+
+        <div class="campo">
+            <label>Estado</label>
+            <select asp-for="Estado">
+                @foreach (var e in (DashboardJym.Models.EstadoProceso[])ViewBag.Estados)
+                {
+                    <option value="@e">@e</option>
+                }
+            </select>
+        </div>
+        <div class="campo">
+            <label>Prioridad</label>
+            <select asp-for="Prioridad">
+                @foreach (var p in (DashboardJym.Models.PrioridadProceso[])ViewBag.Prioridades)
+                {
+                    <option value="@p">@p</option>
+                }
+            </select>
+        </div>
+
+        <div class="campo">
+            <label>Asesor legal (atiende)</label>
+            <select asp-for="AsesorResponsableId" required>
+                <option value="">-- Seleccionar asesor --</option>
+                @foreach (var u in asesores)
+                {
+                    <option value="@u.Id">@u.Nombres @u.Apellidos</option>
+                }
+                @* Si el asesor asignado fue desactivado, no está en la lista de activos:
+                   se agrega igual para que al editar no se pierda la asignación en silencio. *@
+                @if (Model.AsesorResponsableId.HasValue && !asesores.Any(a => a.Id == Model.AsesorResponsableId.Value) && Model.AsesorResponsable != null)
+                {
+                    <option value="@Model.AsesorResponsableId">@Model.AsesorResponsable.Nombres @Model.AsesorResponsable.Apellidos (inactivo)</option>
+                }
+            </select>
+        </div>
+        <div class="campo">
+            <label>Abogado responsable (derivación)</label>
+            <select asp-for="AbogadoResponsableId">
+                <option value="">-- Aún no derivado --</option>
+                @foreach (var u in abogados)
+                {
+                    <option value="@u.Id">@u.Nombres @u.Apellidos</option>
+                }
+                @if (Model.AbogadoResponsableId.HasValue && !abogados.Any(a => a.Id == Model.AbogadoResponsableId.Value) && Model.AbogadoResponsable != null)
+                {
+                    <option value="@Model.AbogadoResponsableId">@Model.AbogadoResponsable.Nombres @Model.AbogadoResponsable.Apellidos (inactivo)</option>
+                }
+            </select>
+        </div>
+
+        <div class="campo full"><label asp-for="Observaciones">Observaciones</label><textarea asp-for="Observaciones" rows="3"></textarea></div>
+    </div>
+
+    <button type="submit" class="btn btn-primario" id="btnGuardarProceso" style="margin-top:16px;">@(esNuevo ? "Registrar proceso" : "Guardar cambios")</button>
+</form>
+
+<script>
+    function crearBuscable(cfg) {
+        var input = document.getElementById(cfg.inputId);
+        var hidden = document.getElementById(cfg.hiddenId);
+        var lista = document.getElementById(cfg.listaId);
+        var items = cfg.items;
+
+        function render(filtro) {
+            var texto = filtro.trim().toLowerCase();
+            var filtrados = texto === '' ? items : items.filter(function (it) {
+                return it.texto.toLowerCase().indexOf(texto) !== -1;
+            });
+            lista.innerHTML = '';
+            if (filtrados.length === 0) {
+                var vacio = document.createElement('div');
+                vacio.className = 'vacio';
+                vacio.textContent = 'Sin resultados';
+                lista.appendChild(vacio);
+            } else {
+                filtrados.slice(0, 30).forEach(function (it) {
+                    var op = document.createElement('div');
+                    op.className = 'opcion';
+                    op.textContent = it.texto;
+                    op.addEventListener('mousedown', function (e) {
+                        e.preventDefault();
+                        input.value = it.texto;
+                        hidden.value = it.id;
+                        lista.classList.remove('activa');
+                    });
+                    lista.appendChild(op);
+                });
+            }
+            lista.classList.add('activa');
+        }
+
+        input.addEventListener('focus', function () { render(input.value); });
+        input.addEventListener('input', function () {
+            hidden.value = '';
+            render(input.value);
+        });
+        input.addEventListener('blur', function () {
+            setTimeout(function () { lista.classList.remove('activa'); }, 150);
+        });
+    }
+
+    crearBuscable({ inputId: 'clienteTexto', hiddenId: 'clienteIdHidden', listaId: 'clienteLista', items: @Html.Raw(clientesJson) });
+    crearBuscable({ inputId: 'tipoTexto', hiddenId: 'tipoIdHidden', listaId: 'tipoLista', items: @Html.Raw(tiposJson) });
+
+    document.querySelector('form').addEventListener('submit', function (e) {
+        var faltantes = [];
+        if (!document.getElementById('clienteIdHidden').value) faltantes.push('Cliente');
+        if (!document.getElementById('tipoIdHidden').value) faltantes.push('Tipo de proceso');
+        if (faltantes.length > 0) {
+            e.preventDefault();
+            alert('Selecciona de la lista: ' + faltantes.join(', ') + '. Escribe y elige una opción de las sugerencias.');
+        }
+    });
+</script>

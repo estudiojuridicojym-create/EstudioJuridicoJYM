@@ -1,0 +1,96 @@
+@model DashboardJym.Models.ViewModels.RegistroViewModel
+@{
+    Layout = null;
+    ViewData["Title"] = "Crear cuenta";
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear cuenta - Estudio Jurídico JYM</title>
+    <link rel="icon" type="image/webp" href="~/img/logo.webp">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Raleway:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/app.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</head>
+<body>
+    <div class="login-wrap">
+        <div class="login-panel-brand">
+            <h2>Únete al equipo <span class="accent">JYM</span></h2>
+            <p>Crea tu cuenta de acceso interno como abogado o asesor legal para empezar a gestionar clientes y procesos.</p>
+            <ul>
+                <li><i class="bi bi-person-badge"></i> Cuenta personal con rol asignado</li>
+                <li><i class="bi bi-lock"></i> Acceso protegido con contraseña</li>
+                <li><i class="bi bi-people"></i> Colabora con el resto del equipo</li>
+            </ul>
+        </div>
+
+        <div class="login-panel-form">
+            <div class="login-caja" style="max-width:460px;">
+                <h1>Crear cuenta</h1>
+                <p class="sub">Registro para abogados y asesores legales del estudio</p>
+
+                @if (!ViewData.ModelState.IsValid)
+                {
+                    <div class="error">
+                        <ul style="margin:0; padding-left:18px;">
+                            @foreach (var e in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                            {
+                                <li>@e.ErrorMessage</li>
+                            }
+                        </ul>
+                    </div>
+                }
+
+                <form method="post" asp-controller="Auth" asp-action="Registro">
+                    @Html.AntiForgeryToken()
+                    <div class="grid-2col">
+                        <div class="campo"><label asp-for="Nombres">Nombres</label><input asp-for="Nombres" required></div>
+                        <div class="campo"><label asp-for="Apellidos">Apellidos</label><input asp-for="Apellidos" required></div>
+                        <div class="campo"><label asp-for="Dni">DNI</label><input asp-for="Dni" maxlength="20" required></div>
+                        <div class="campo"><label asp-for="Telefono">Teléfono</label><input asp-for="Telefono"></div>
+                        <div class="campo full"><label asp-for="Correo">Correo</label><input asp-for="Correo" type="email" required></div>
+                        <div class="campo full">
+                            <label asp-for="CodigoInvitacion">Código de invitación</label>
+                            <input asp-for="CodigoInvitacion" required placeholder="Pídelo a tu administrador">
+                            <small style="color:var(--gris-texto); font-size:11.5px;">Tu rol (abogado o asesor legal) lo determina el código que te dieron: cada rol tiene el suyo.</small>
+                        </div>
+                        <div class="campo full">
+                            <label asp-for="Password">Contraseña</label>
+                            <div class="campo-password">
+                                <input asp-for="Password" id="passwordInput" type="password" required minlength="8">
+                                <button type="button" class="toggle-password" onclick="togglePassword()" aria-label="Mostrar contraseña" tabindex="-1">
+                                    <i class="bi bi-eye" id="passwordIcon"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primario" style="margin-top:20px;"><i class="bi bi-person-plus"></i> Crear cuenta</button>
+                </form>
+
+                <p style="text-align:center; margin-top:20px; font-size:12.5px;">
+                    <a asp-controller="Auth" asp-action="Login">Ya tengo cuenta — Iniciar sesión</a>
+                </p>
+            </div>
+        </div>
+    </div>
+    <script>
+        function togglePassword() {
+            const input = document.getElementById('passwordInput');
+            const icon = document.getElementById('passwordIcon');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('bi-eye');
+                icon.classList.add('bi-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('bi-eye-slash');
+                icon.classList.add('bi-eye');
+            }
+        }
+    </script>
+</body>
+</html>

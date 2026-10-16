@@ -1,0 +1,64 @@
+@model List<DashboardJym.Models.Usuario>
+@{
+    ViewData["Title"] = "Usuarios";
+}
+
+<h1>Usuarios del estudio</h1>
+
+@if (TempData["Mensaje"] != null)
+{
+    <p class="mensaje">@TempData["Mensaje"]</p>
+}
+
+<div class="tabla-wrap">
+<table>
+    <thead>
+        <tr>
+            <th>Nombre</th>
+            <th>Correo</th>
+            <th>DNI</th>
+            <th>Rol</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var u in Model)
+        {
+            var rolActual = u.UsuarioRoles.FirstOrDefault()?.Rol?.Nombre ?? "—";
+            <tr>
+                <td>@u.NombreCompleto</td>
+                <td>@u.Correo</td>
+                <td>@u.Dni</td>
+                <td><span class="badge @(rolActual == "ABOGADO" ? "CONFIRMADO" : "NUEVO")">@rolActual</span></td>
+                <td><span class="badge @(u.Estado ? "CONFIRMADO" : "ANULADO")">@(u.Estado ? "Activo" : "Inactivo")</span></td>
+                <td style="display:flex; gap:8px; flex-wrap:wrap;">
+                    <form method="post" asp-action="CambiarEstado" asp-route-id="@u.Id"
+                          onsubmit="return confirm('¿@(u.Estado ? "Desactivar" : "Activar") a @u.NombreCompleto?');">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn @(u.Estado ? "btn-observar" : "btn-confirmar")">
+                            @(u.Estado ? "Desactivar" : "Activar")
+                        </button>
+                    </form>
+                    <form method="post" asp-action="CambiarRol" asp-route-id="@u.Id" style="display:flex; gap:6px;">
+                        @Html.AntiForgeryToken()
+                        <select name="rol">
+                            @if (rolActual == "ABOGADO")
+                            {
+                                <option value="ABOGADO" selected>Abogado</option>
+                                <option value="ASESOR_LEGAL">Asesor legal</option>
+                            }
+                            else
+                            {
+                                <option value="ABOGADO">Abogado</option>
+                                <option value="ASESOR_LEGAL" selected>Asesor legal</option>
+                            }
+                        </select>
+                        <button type="submit" class="btn btn-primario">Guardar rol</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+</div>
